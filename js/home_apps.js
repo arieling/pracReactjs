@@ -31,11 +31,7 @@ var PersonList = React.createClass({
   render: function() {
    var personNodes = this.props.data.map(function(person) {
       return (
-        <Person id={person.id} lastName={person.lastName} firstName={person.firstName}>
-         id: {person.id}
-         lastName: {person.lastName} 
-         firstName: {person.firstName}
-        </Person>
+        <Person id={person.id} lastName={person.lastName} firstName={person.firstName} />
       );
     });
 
@@ -70,4 +66,65 @@ ReactDOM.render(
   document.getElementById('content')
 );
 
+var link = 1;
+var InputForm = React.createClass({
+  getInitialState: function() {
+    return {link: ''};
+  },
+  handleLinkChange: function(e) {
+    this.setState({link: e.target.value});
+  },
+  handleSubmit: function(e) {
+    e.preventDefault();
+    link = this.state.link.trim();
+    if (!link) {
+      return;
+    }
+    this.props.onIdSubmit({link: link});
+    this.setState({link: ''});
+  },
 
+  render: function() {
+    return (
+      <form className="commentForm" onSubmit={this.handleSubmit}>
+        <input
+          type="text"
+          placeholder="Person id"
+          onChange={this.handleLinkChange}/>
+        <input type="submit" value="Post" />
+      </form>
+    );
+  }
+});
+
+var SearchBox = React.createClass({
+  handleIdSubmit: function(person) {
+    $.ajax({
+      url: "http://localhost:8080/arena/api/persons/get/" + link + "/spells",
+      dataType: 'json',
+      data: person,
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(err.toString());
+      }.bind(this)
+    });
+  },
+  getInitialState: function() {
+    return {data: []};
+  },
+  render: function() {
+    return (
+      <div className="commentBox">
+        <InputForm onIdSubmit={this.handleIdSubmit} />
+        <PersonList data={this.state.data}/> 
+      </div>
+    );
+  }
+});
+
+ReactDOM.render(
+  <SearchBox/>,
+  document.getElementById('search')
+);
